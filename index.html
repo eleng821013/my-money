@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的完美資產管家 V4.2</title>
+    <title>我的完美資產管家 V4.2 - 清爽修正版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <style>
@@ -19,7 +19,6 @@
 <body class="p-4 md:p-8">
 
 <div class="max-w-6xl mx-auto">
-    <!-- 頂部總覽 -->
     <header class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
         <div>
             <div class="flex items-center justify-center md:justify-start gap-3">
@@ -38,7 +37,6 @@
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- 左側：投資庫存 -->
         <div class="lg:col-span-2 space-y-6">
             <div class="glass-card p-6 md:p-8">
                 <div class="flex justify-between items-center mb-8">
@@ -60,7 +58,6 @@
                 </div>
             </div>
 
-            <!-- 最近紀錄 -->
             <div class="glass-card p-8">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-black text-slate-700">📜 帳務流水帳</h3>
@@ -72,7 +69,6 @@
             </div>
         </div>
 
-        <!-- 右側：四帳戶卡片 -->
         <div class="space-y-6">
             <div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
                 <div class="glass-card p-4 border-l-8 border-pink-400"><p class="text-[10px] text-slate-400 font-bold">生活錢包</p><p id="wallet-val" class="text-xl font-black text-slate-700">$ 0</p></div>
@@ -81,7 +77,6 @@
                 <div class="glass-card p-4 border-l-8 border-emerald-400 bg-emerald-50/30"><p class="text-[10px] text-emerald-500 font-bold">口袋現金</p><p id="cash-val" class="text-xl font-black text-slate-700">$ 0</p></div>
             </div>
 
-            <!-- 記帳表單 -->
             <div class="glass-card p-8 space-y-4 shadow-2xl shadow-pink-100">
                 <h3 class="font-black text-slate-700 text-center text-lg">✍️ 快速記帳</h3>
                 <button onclick="quickWithdraw()" class="w-full btn-withdraw py-2 rounded-xl text-xs font-bold transition hover:bg-pink-100">
@@ -96,7 +91,7 @@
                 <input type="text" id="t-desc" placeholder="項目內容..." class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-none">
                 <input type="number" id="t-amount" placeholder="金額..." class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-none">
                 <button onclick="addTrans()" class="w-full btn-pink text-white py-4 rounded-2xl font-black shadow-xl active:scale-95">紀錄入帳</button>
-                <button onclick="clearHistory()" class="w-full text-[10px] text-slate-300 hover:text-red-500 transition font-bold mt-2 text-center underline">🗑️ 清除全部數據 (重來)</button>
+                <button onclick="clearHistory()" class="w-full text-[10px] text-slate-300 hover:text-red-400 transition font-bold mt-2 text-center underline">🗑️ 清除全部數據 (重來)</button>
             </div>
         </div>
     </div>
@@ -105,30 +100,23 @@
 <script>
     const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbziOxOkH-JDDXJSQFSn0t4_9hVto_VhBl1SauC1AAbhaavX6HF0pg7bWi85Iv-PAPPW/exec';
     
-    // 救援歷史數據邏輯
-    let savedData = JSON.parse(localStorage.getItem('perfectMaster_V4')) || 
-                    JSON.parse(localStorage.getItem('perfectMaster_V3_Final')) || 
-                    JSON.parse(localStorage.getItem('perfectMaster_V3_Minimal')) || 
-                    { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] };
+    // 💡 已刪除舊版救援邏輯，直接從 V4 開始
+    let storage = JSON.parse(localStorage.getItem('perfectMaster_V4')) || 
+                  { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] };
 
-    let storage = savedData;
-    if (typeof storage.cash === 'undefined') storage.cash = 0;
     storage.selectedAcc = 'wallet';
-
-    // 用於復原上一步的暫存
     let historyStack = [];
+    let liveStocks = [];
 
     function saveState() {
-        // 限制復原步數為 10 步
         if (historyStack.length > 10) historyStack.shift();
         historyStack.push(JSON.stringify(storage));
     }
 
     function undoLastAction() {
         if (historyStack.length === 0) return alert("沒有上一步可以復原囉！");
-        const lastState = historyStack.pop();
-        storage = JSON.parse(lastState);
-        saveAndRender(false); // 不再儲存新狀態
+        storage = JSON.parse(historyStack.pop());
+        saveAndRender(false);
         alert("已成功復原到上一步！");
     }
 
@@ -172,7 +160,7 @@
         document.getElementById('t-amount').value = '';
     }
 
-    function saveAndRender(shouldSaveState = true) {
+    function saveAndRender(shouldRecord = true) {
         localStorage.setItem('perfectMaster_V4', JSON.stringify(storage));
         render();
     }
@@ -186,13 +174,11 @@
         const sList = document.getElementById('stock-list');
         sList.innerHTML = '';
         let stockTotal = 0;
-        if(typeof liveStocks !== 'undefined') {
-            liveStocks.forEach(s => {
-                const val = s.price * s.qty;
-                stockTotal += val;
-                sList.innerHTML += `<tr class="border-b border-pink-50"><td class="py-5 font-black text-slate-700">${s.name}</td><td class="text-right text-slate-500">${s.qty.toLocaleString()}</td><td class="text-right text-pink-500 font-bold">$${s.price.toFixed(2)}</td><td class="text-right font-black text-slate-700">$${Math.round(val).toLocaleString()}</td></tr>`;
-            });
-        }
+        liveStocks.forEach(s => {
+            const val = s.price * s.qty;
+            stockTotal += val;
+            sList.innerHTML += `<tr class="border-b border-pink-50"><td class="py-5 font-black text-slate-700">${s.name}</td><td class="text-right text-slate-500">${s.qty.toLocaleString()}</td><td class="text-right text-pink-500 font-bold">$${s.price.toFixed(2)}</td><td class="text-right font-black text-slate-700">$${Math.round(val).toLocaleString()}</td></tr>`;
+        });
 
         document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + storage.cash + stockTotal).toLocaleString()}`;
         document.getElementById('trans-list').innerHTML = storage.trans.slice(-8).reverse().map(t => `
@@ -204,9 +190,9 @@
     }
 
     function clearHistory() {
-        if(confirm('🚨 確定要「清空全部」帳務嗎？\n此動作將會清除所有錢包餘額與流水帳紀錄，且無法復原。')) {
-            saveState(); // 清除前先存一個狀態，萬一後悔還能復原一次
-            storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [], selectedAcc: 'wallet' };
+        if(confirm('🚨 確定要重新開始嗎？這會清空目前的餘額。')) {
+            saveState();
+            storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] };
             saveAndRender();
         }
     }
