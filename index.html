@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的雲端資產管家</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
+    <style>
+        body { background: #fdf2f8; font-family: 'Noto Sans TC', sans-serif; }
+        .glass-card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(244,114,182,0.1); border: 1px solid #fce7f3; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+<div class="max-w-4xl mx-auto">
+    <!-- 總資產面板 -->
+    <div class="glass-card p-8 bg-gradient-to-r from-pink-500 to-rose-400 text-white mb-8">
+        <p class="text-xs opacity-80 uppercase tracking-widest mb-1">總預估淨值 (自動更新中)</p>
+        <h1 id="total-net-worth" class="text-4xl font-black mb-6">$ 0</h1>
+        <div class="grid grid-cols-3 gap-4 border-t border-white/20 pt-4">
+            <div><p class="text-[10px] opacity-70">生活錢包</p><p id="wallet-v" class="font-bold text-sm">$ 0</p></div>
+            <div><p class="text-[10px] opacity-70">儲蓄帳戶</p><p id="savings-v" class="font-bold text-sm">$ 0</p></div>
+            <div><p class="text-[10px] opacity-70 text-yellow-200">證券交割戶</p><p id="brokerage-v" class="font-bold text-sm text-yellow-200">$ 0</p></div>
+        </div>
+    </div>
+
+    <!-- 股票庫存 (由 Google Sheets 驅動) -->
+    <div class="glass-card p-6 mb-8 overflow-hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-pink-700"><i class="fas fa-chart-line mr-2"></i>即時庫存損益</h2>
+            <button onclick="fetchGoogleData()" class="text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full hover:bg-pink-200">🔄 手動更新</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <tbody id="stock-list">
+                    <tr class="text-slate-400 text-sm"><td>讀取雲端資料中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 快速記帳 -->
+    <div class="glass-card p-8">
+        <h3 class="font-bold text-slate-700 mb-4 text-center text-lg">💰 資金動動</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+                <select id="acc-select" class="w-full bg-slate-50 p-3 rounded-xl outline-none border-2 border-pink-50">
+                    <option value="wallet">生活錢包</option>
+                    <option value="savings">儲蓄帳戶</option>
+                    <option value="brokerage">證券交割戶 (領息存放)</option>
+                </select>
+                <input type="text" id="t-desc" placeholder="項目描述..." class="w-full bg-slate-50 p-3 rounded-xl outline-none border-2 border-pink-50">
+                <input type="number" id="t-amount" placeholder="金額..." class="w-full bg-slate-50 p-3 rounded-xl outline-none border-2 border-pink-50">
+                <button onclick="addTrans()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition">紀錄明細</button>
+            </div>
+            <div class="bg-slate-50 rounded-2xl p-4 overflow-y-auto max-h-48" id="log-list">
+                <p class="text-xs text-slate-400 text-center">暫無紀錄</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ 請填入你從 Google Apps Script 複製的部署網址
+    const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbziOxOkH-JDDXJSQFSn0t4_9hVto_VhBl1SauC1AAbhaavX6HF0pg7bWi85Iv-PAPPW/exec';
+
+    let storage = JSON.parse(localStorage.getItem('cloudMaster_v3')) || {
+        wallet: 0, savings: 0, brokerage: 0, trans: []
+    };
+    let liveStocks = [];
+
+    async function fetchGoogleData() {
+        try {
+            const response = await fetch(GOOGLE_API_URL);
+            liveStocks = await response.json();
+            render();
+        } catch (e) {
+            console.error("無法連接 Google Sheets", e);
+        }
+    }
+
+    function addTrans() {
+        const acc = document.getElementById('acc-select').value;
+        const desc = document.getElementById('t-desc').value;
+        const amount = parseFloat(document.getElementById('t-amount').value);
+        if(!desc || isNaN(amount)) return;
+        
+        storage[acc] += amount;
+        storage.trans.push({ acc, desc, amount, date: new Date().toLocaleDateString() });
+        saveAndRender();
+        document.getElementById('t-desc').value = '';
+        document.getElementById('t-amount').value = '';
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('cloudMaster_v3', JSON.stringify(storage));
+        render();
+    }
+
+    function render() {
+        // 更新錢包數值
+        document.getElementById('wallet-v').innerText = `$ ${storage.wallet.toLocaleString()}`;
+        document.getElementById('savings-v').innerText = `$ ${storage.savings.toLocaleString()}`;
+        document.getElementById('brokerage-v').innerText = `$ ${storage.brokerage.toLocaleString()}`;
+
+        // 渲染股票
+        const sList = document.getElementById('stock-list');
+        sList.innerHTML = '';
+        let stockNetValue = 0;
+
+        liveStocks.forEach(s => {
+            const currentVal = s.price * s.qty;
+            const costVal = s.cost * s.qty;
+            const profit = currentVal - costVal;
+            const roi = ((currentVal / costVal - 1) * 100).toFixed(2);
+            stockNetValue += currentVal;
+
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-pink-50";
+            tr.innerHTML = `
+                <td class="py-4">
+                    <p class="font-bold text-slate-700">${s.name}</p>
+                    <p class="text-[10px] text-slate-400">${s.qty}股 · 成本 $${s.cost}</p>
+                </td>
+                <td class="text-right">
+                    <p class="text-sm font-bold text-pink-500">$${s.price.toFixed(2)}</p>
+                    <p class="text-[10px] text-slate-400">現值 $${Math.round(currentVal).toLocaleString()}</p>
+                </td>
+                <td class="text-right font-black ${profit >= 0 ? 'text-emerald-500' : 'text-rose-400'}">
+                    ${profit >= 0 ? '+' : ''}$${Math.round(profit).toLocaleString()}
+                    <div class="text-[10px]">${roi}%</div>
+                </td>
+            `;
+            sList.appendChild(tr);
+        });
+
+        // 總資產計算
+        document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + stockNetValue).toLocaleString()}`;
+
+        // 紀錄列表
+        const log = document.getElementById('log-list');
+        log.innerHTML = storage.trans.slice(-5).reverse().map(t => `
+            <div class="flex justify-between py-2 border-b border-white text-xs">
+                <span>${t.desc}</span>
+                <span class="font-bold ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">${t.amount}</span>
+            </div>
+        `).join('') || '<p class="text-xs text-slate-400 text-center">暫無紀錄</p>';
+    }
+
+    // 初始載入：一打開就自動更新
+    fetchGoogleData();
+    render();
+</script>
+</body>
+</html>
