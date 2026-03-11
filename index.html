@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的完美資產管家 V3.1</title>
+    <title>我的完美資產管家 V3.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <style>
@@ -12,6 +12,11 @@
         .glass-card { background: white; border-radius: 2rem; box-shadow: 0 10px 30px rgba(244, 114, 182, 0.15); border: 1px solid #fce7f3; }
         .btn-pink { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); transition: all 0.3s ease; }
         .btn-pink:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 154, 158, 0.4); }
+        /* 讓表格在手機上稍微縮小文字，避免破版 */
+        @media (max-width: 640px) {
+            table { font-size: 0.85rem; }
+            .stock-name { min-width: 80px; }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -20,7 +25,7 @@
     <!-- 頂部總覽 -->
     <header class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
         <div>
-            <h1 class="text-3xl font-black text-pink-500 tracking-tighter">💎 完美資產管家 <span class="text-sm font-normal text-slate-300 ml-2">Live Cloud</span></h1>
+            <h1 class="text-3xl font-black text-pink-500 tracking-tighter">💎 完美資產管家</h1>
             <p class="text-slate-400 font-bold mt-1 text-sm">數據由 Google Sheets 自動驅動</p>
         </div>
         <div class="glass-card px-8 py-4 bg-white/50">
@@ -31,29 +36,28 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- 左側：投資庫存與佔比 -->
+        <!-- 左側：投資庫存 (極簡表格) -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="glass-card p-8">
+            <div class="glass-card p-6 md:p-8">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-black text-pink-600"><i class="fas fa-chart-pie mr-2"></i>投資市值佔比</h2>
+                    <h2 class="text-2xl font-black text-pink-600"><i class="fas fa-wallet mr-2"></i>投資市值</h2>
                     <button onclick="fetchGoogleData()" class="text-xs bg-pink-50 text-pink-500 px-4 py-2 rounded-full font-bold hover:bg-pink-100 transition">
                         <i class="fas fa-sync-alt mr-1"></i> 刷新行情
                     </button>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="text-slate-400 text-xs border-b border-pink-50">
-                                <th class="pb-4 px-2">股票名稱</th>
-                                <th class="pb-4 text-right">持有股數</th>
-                                <th class="pb-4 text-right text-pink-500">當前市價</th>
+                                <th class="pb-4 px-1">名稱</th>
+                                <th class="pb-4 text-right">股數</th>
+                                <th class="pb-4 text-right text-pink-500">市價</th>
                                 <th class="pb-4 text-right">當前市值</th>
-                                <th class="pb-4 text-right text-indigo-400">資產佔比</th>
                             </tr>
                         </thead>
                         <tbody id="stock-list">
-                            <!-- 由 Google Data 渲染 -->
+                            <!-- 資料載入中 -->
                         </tbody>
                     </table>
                 </div>
@@ -70,7 +74,6 @@
 
         <!-- 右側：帳戶狀態與輸入 -->
         <div class="space-y-6">
-            <!-- 三大帳戶卡片 -->
             <div class="space-y-4">
                 <div class="glass-card p-5 border-l-8 border-pink-400">
                     <p class="text-xs text-slate-400 font-bold mb-1">生活錢包</p>
@@ -81,12 +84,11 @@
                     <p id="savings-val" class="text-2xl font-black text-indigo-600">$ 0</p>
                 </div>
                 <div class="glass-card p-5 border-l-8 border-yellow-400 bg-yellow-50/30">
-                    <p class="text-xs text-yellow-500 font-bold mb-1">證券交割戶 (領息/再投入)</p>
+                    <p class="text-xs text-yellow-500 font-bold mb-1">證券交割戶</p>
                     <p id="brokerage-val" class="text-2xl font-black text-slate-700">$ 0</p>
                 </div>
             </div>
 
-            <!-- 快速記帳表單 -->
             <div class="glass-card p-8 space-y-5 shadow-2xl shadow-pink-100">
                 <h3 class="font-black text-slate-700 text-lg text-center">✍️ 快速記帳</h3>
                 <div class="flex gap-2 p-1 bg-slate-100 rounded-2xl">
@@ -100,28 +102,27 @@
                 <button onclick="clearHistory()" class="w-full text-[10px] text-slate-300 hover:text-red-400 transition font-bold mt-2 text-center">清空所有紀錄</button>
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
+    // ⚠️ 記得填入妳的網址
     const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbziOxOkH-JDDXJSQFSn0t4_9hVto_VhBl1SauC1AAbhaavX6HF0pg7bWi85Iv-PAPPW/exec';
 
-    let storage = JSON.parse(localStorage.getItem('perfectMaster_V3_Minimal')) || {
+    let storage = JSON.parse(localStorage.getItem('perfectMaster_V3_Final')) || {
         wallet: 0, savings: 0, brokerage: 0, trans: [], selectedAcc: 'wallet'
     };
     let liveStocks = [];
 
     async function fetchGoogleData() {
         const sList = document.getElementById('stock-list');
-        sList.innerHTML = '<tr class="text-slate-300 text-xs italic"><td class="py-4">同步雲端行情中...</td></tr>';
-        
+        sList.innerHTML = '<tr><td colspan="4" class="py-4 text-xs text-slate-300">連線中...</td></tr>';
         try {
             const response = await fetch(GOOGLE_API_URL);
             liveStocks = await response.json();
             render();
         } catch (e) {
-            sList.innerHTML = '<tr class="text-red-400 text-xs italic"><td class="py-4">連線失敗，請檢查網址或權限</td></tr>';
+            sList.innerHTML = '<tr><td colspan="4" class="py-4 text-xs text-red-300">連線失敗</td></tr>';
         }
     }
 
@@ -129,11 +130,7 @@
         storage.selectedAcc = acc;
         ['wallet', 'savings', 'brokerage'].forEach(a => {
             const btn = document.getElementById(`btn-${a}`);
-            if (a === acc) {
-                btn.className = `flex-1 py-3 rounded-xl text-xs font-bold transition shadow-md ${a==='wallet'?'bg-pink-500':a==='savings'?'bg-indigo-500':'bg-slate-800'} text-white`;
-            } else {
-                btn.className = 'flex-1 py-3 rounded-xl text-xs font-bold transition text-slate-400';
-            }
+            btn.className = `flex-1 py-3 rounded-xl text-xs font-bold transition ${a === acc ? (a==='wallet'?'bg-pink-500':a==='savings'?'bg-indigo-500':'bg-slate-800') + ' text-white shadow-md' : 'text-slate-400'}`;
         });
     }
 
@@ -141,7 +138,6 @@
         const desc = document.getElementById('t-desc').value;
         const amount = parseFloat(document.getElementById('t-amount').value);
         if(!desc || isNaN(amount)) return;
-        
         storage[storage.selectedAcc] += amount;
         storage.trans.push({ acc: storage.selectedAcc, desc, amount, date: new Date().toLocaleDateString() });
         saveAndRender();
@@ -150,91 +146,47 @@
     }
 
     function saveAndRender() {
-        localStorage.setItem('perfectMaster_V3_Minimal', JSON.stringify(storage));
+        localStorage.setItem('perfectMaster_V3_Final', JSON.stringify(storage));
         render();
     }
 
     function render() {
-    // 更新錢包
-    document.getElementById('wallet-val').innerText = `$ ${storage.wallet.toLocaleString()}`;
-    document.getElementById('savings-val').innerText = `$ ${storage.savings.toLocaleString()}`;
-    document.getElementById('brokerage-val').innerText = `$ ${storage.brokerage.toLocaleString()}`;
+        document.getElementById('wallet-val').innerText = `$ ${storage.wallet.toLocaleString()}`;
+        document.getElementById('savings-val').innerText = `$ ${storage.savings.toLocaleString()}`;
+        document.getElementById('brokerage-val').innerText = `$ ${storage.brokerage.toLocaleString()}`;
 
-    const sList = document.getElementById('stock-list');
-    sList.innerHTML = '';
-    let stockMarketTotal = 0;
+        const sList = document.getElementById('stock-list');
+        sList.innerHTML = '';
+        let stockMarketTotal = 0;
 
-    // 先計算總市值
-    liveStocks.forEach(s => stockMarketTotal += (s.price * s.qty));
+        liveStocks.forEach(s => {
+            const val = s.price * s.qty;
+            stockMarketTotal += val;
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-pink-50 hover:bg-pink-50/30 transition";
+            tr.innerHTML = `
+                <td class="py-5 px-1 font-black text-slate-700 stock-name">${s.name}</td>
+                <td class="text-right font-bold text-slate-500">${s.qty.toLocaleString()}</td>
+                <td class="text-right text-pink-500 font-bold">$${s.price.toFixed(2)}</td>
+                <td class="text-right font-black text-slate-700">$${Math.round(val).toLocaleString()}</td>
+            `;
+            sList.appendChild(tr);
+        });
 
-    liveStocks.forEach(s => {
-        const currentVal = s.price * s.qty;
-        const ratio = stockMarketTotal > 0 ? ((currentVal / stockMarketTotal) * 100).toFixed(1) : 0;
+        document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + stockMarketTotal).toLocaleString()}`;
 
-        // 建立手機版堆疊式 Row
-        const tr = document.createElement('tr');
-        // 手機版：flex-col (堆疊) | 電腦版：table-row (表格)
-        tr.className = "flex flex-col md:table-row border-b border-pink-50 p-4 md:p-0 hover:bg-pink-50/30 transition";
-        tr.innerHTML = `
-            <td class="py-2 md:py-5 px-2">
-                <div class="flex justify-between items-center md:block">
-                    <p class="font-black text-slate-700 text-lg md:text-base">${s.name}</p>
-                    <span class="md:hidden bg-indigo-50 text-indigo-500 px-2 py-1 rounded text-[10px] font-black">${ratio}%</span>
-                </div>
-                <p class="text-[10px] text-slate-400 font-bold uppercase">代號 ${s.symbol}</p>
-            </td>
-            <td class="flex justify-between md:table-cell py-1 md:py-5 text-right font-bold text-slate-600">
-                <span class="md:hidden text-slate-400 font-normal">持有股數</span>
-                <span>${s.qty.toLocaleString()}</span>
-            </td>
-            <td class="flex justify-between md:table-cell py-1 md:py-5 text-right">
-                <span class="md:hidden text-slate-400 font-normal">當前市價</span>
-                <span class="text-pink-500 font-bold">$${s.price.toFixed(2)}</span>
-            </td>
-            <td class="flex justify-between md:table-cell py-1 md:py-5 text-right font-black text-slate-700">
-                <span class="md:hidden text-slate-400 font-normal">當前市值</span>
-                <span>$${Math.round(currentVal).toLocaleString()}</span>
-            </td>
-            <td class="hidden md:table-cell text-right">
-                <span class="bg-indigo-50 text-indigo-500 px-2 py-1 rounded text-[10px] font-black">${ratio}%</span>
-            </td>
-        `;
-        sList.appendChild(tr);
-    });
-
-    document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + stockMarketTotal).toLocaleString()}`;
-    
-    // 最近紀錄渲染 (略，維持原樣即可)
-    const tList = document.getElementById('trans-list');
-    tList.innerHTML = '';
-    storage.trans.slice(-6).reverse().forEach(t => {
-        const div = document.createElement('div');
-        const color = t.acc === 'wallet' ? 'pink' : t.acc === 'savings' ? 'indigo' : 'slate';
-        div.className = `flex justify-between items-center p-4 bg-white border border-${color}-100 rounded-2xl shadow-sm mb-2`;
-        div.innerHTML = `
-            <div>
-                <p class="font-bold text-xs text-slate-600">${t.desc}</p>
-                <p class="text-[9px] text-slate-300 font-bold uppercase">${t.acc} · ${t.date}</p>
+        const tList = document.getElementById('trans-list');
+        tList.innerHTML = storage.trans.slice(-6).reverse().map(t => `
+            <div class="flex justify-between items-center p-4 bg-white border border-slate-50 rounded-2xl shadow-sm">
+                <div><p class="font-bold text-xs text-slate-600">${t.desc}</p><p class="text-[9px] text-slate-300 font-bold uppercase">${t.acc}</p></div>
+                <span class="font-black text-sm ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">${t.amount < 0 ? '' : '+'}${t.amount.toLocaleString()}</span>
             </div>
-            <span class="font-black text-md ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">
-                ${t.amount < 0 ? '' : '+'}${t.amount.toLocaleString()}
-            </span>
-        `;
-        tList.appendChild(div);
-    });
-}
-
-
-    function clearHistory() {
-        if(confirm('確定清除帳務紀錄嗎？')) {
-            storage.wallet = 0; storage.savings = 0; storage.brokerage = 0; storage.trans = [];
-            saveAndRender();
-        }
+        `).join('');
     }
 
+    function clearHistory() { if(confirm('確定清除帳務紀錄嗎？')) { storage.wallet = 0; storage.savings = 0; storage.brokerage = 0; storage.trans = []; saveAndRender(); } }
     setAcc('wallet');
     fetchGoogleData();
-    render();
 </script>
 </body>
 </html>
