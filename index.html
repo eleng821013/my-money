@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>額冷的Paisu V7.8 PrivacyGold</title>
+    <title>額冷的Paisu V7.8 BlackGold-Privacy-Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <script>
@@ -15,6 +15,7 @@
     <style>
         @import url('https://fonts.googleapis.com');
         body { transition: background-color 0.3s, color 0.3s; font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
         :root { --bg-body: #fff5f7; --card-bg: white; --card-border: #fce7f3; --text-main: #334155; }
         .dark { --bg-body: #0f172a; --card-bg: #1e293b; --card-border: #334155; --text-main: #f1f5f9; }
 
@@ -22,7 +23,7 @@
         .glass-card { background-color: var(--card-bg); border-radius: 1.5rem; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
         /* 隱私遮蓋樣式 */
-        .privacy-active .amount-val { position: relative; color: transparent !important; text-shadow: 0 0 12px rgba(148, 163, 184, 0.8); pointer-events: none; }
+        .privacy-active .amount-val { position: relative; color: transparent !important; text-shadow: 0 0 10px rgba(148, 163, 184, 0.8); pointer-events: none; }
         .privacy-active .amount-val::before { content: '****'; position: absolute; left: 50%; transform: translateX(-50%); color: var(--text-main); text-shadow: none; letter-spacing: 2px; font-weight: 900; }
         .dark.privacy-active .amount-val::before { color: #fbbf24; }
         .text-right.privacy-active .amount-val::before { left: auto; right: 0; transform: none; }
@@ -31,10 +32,12 @@
         .dark .btn-pink { background: linear-gradient(135deg, #b45309 0%, #fbbf24 100%); color: #451a03; }
         .btn-action { background: #fdf2f8; border: 1.5px dashed #f472b6; color: #db2777; }
         .dark .btn-action { background: #1e293b; border: 1.5px dashed #fbbf24; color: #fbbf24; }
+        
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); height: 75px; display: flex; align-items: center; border-top: 1px solid var(--card-border); z-index: 100; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; transition: 0.3s; }
         .nav-item.active { color: #f472b6; transform: translateY(-2px); }
         .dark .nav-item.active { color: #fbbf24; }
+        
         .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0.75rem; position: relative; font-size: 0.85rem; font-weight: 700; }
         .calendar-day.has-data::after { content: ''; position: absolute; bottom: 5px; width: 4px; height: 4px; background: #f472b6; border-radius: 50%; }
         .dark .calendar-day.has-data::after { background: #fbbf24; }
@@ -53,7 +56,7 @@
         <div class="text-right">
             <div class="flex items-center justify-end gap-1 mb-1">
                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Net Worth</p>
-                <button onclick="togglePrivacy()" id="privacy-btn" class="text-xs filter grayscale hover:grayscale-0 transition active:scale-90">👁️</button>
+                <button onclick="togglePrivacy()" id="privacy-btn" class="text-sm hover:scale-110 transition active:scale-90">👁️</button>
             </div>
             <p id="total-net-worth" class="text-xl font-black text-slate-700 dark:text-white amount-val">$ 0</p>
         </div>
@@ -77,7 +80,7 @@
                                 <th class="py-2 font-black text-right">市值</th>
                             </tr>
                         </thead>
-                        <tbody id="stock-list" class="dark:text-white"></tbody>
+                        <tbody id="stock-list" class="dark:text-white font-bold"></tbody>
                     </table>
                 </div>
                 <button onclick="fetchGoogleData()" class="w-full mt-4 py-2 bg-pink-50 dark:bg-slate-700 text-pink-500 dark:text-gold rounded-xl text-[10px] font-bold">刷新行情</button>
@@ -129,7 +132,6 @@
                 <button onclick="addTrans()" class="w-full btn-pink py-4 rounded-2xl shadow-lg">紀錄入帳 / 支出</button>
             </div>
         </section>
-
         <!-- 分頁 2: 明細 📆 -->
         <section id="tab-calendar" class="hidden space-y-6">
             <div class="glass-card p-5">
@@ -178,6 +180,10 @@
                     <div><label class="text-[10px] text-slate-400 dark:text-slate-300 font-bold block mb-1">名稱</label><input type="text" id="setting-dream-name" class="w-full bg-slate-50 dark:bg-slate-900 dark:text-white p-3 rounded-xl text-sm outline-none"></div>
                     <div><label class="text-[10px] text-slate-400 dark:text-slate-300 font-bold block mb-1">目標金額</label><input type="number" id="setting-dream-target" class="w-full bg-slate-50 dark:bg-slate-900 dark:text-white p-3 rounded-xl text-sm outline-none"></div>
                 </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 dark:text-slate-300 font-bold block mb-1 uppercase tracking-tight">安全水位 (超過才算夢想金)</label>
+                    <input type="number" id="setting-dream-safe" class="w-full bg-slate-50 dark:bg-slate-900 dark:text-white p-3 rounded-xl text-sm outline-none">
+                </div>
                 <button onclick="updateDreamSettings()" class="w-full py-3 bg-pink-500 dark:bg-gold text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg">儲存夢想設定</button>
             </div>
             <div class="glass-card p-6 space-y-4">
@@ -185,6 +191,7 @@
                 <div class="grid grid-cols-1 gap-3">
                     <button onclick="exportData()" class="w-full py-3 bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold text-xs px-4 flex justify-between items-center transition-all"><span>備份資料</span><i class="fas fa-copy opacity-50"></i></button>
                     <button onclick="importData()" class="w-full py-3 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs px-4 flex justify-between items-center transition-all"><span>還原資料</span><i class="fas fa-file-import opacity-50"></i></button>
+                    <button onclick="clearHistory()" class="w-full py-3 bg-rose-50 dark:bg-rose-950/30 text-rose-400 rounded-xl font-bold text-xs px-4 flex justify-between items-center"><span>清空所有紀錄</span><i class="fas fa-trash-alt opacity-50"></i></button>
                 </div>
             </div>
         </section>
@@ -202,19 +209,17 @@
     let storage = JSON.parse(localStorage.getItem('perfectMaster_V5')) || { 
         wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [], 
         customTitle: '💎 額冷的paisu', selectedAcc: 'wallet',
-        dreamName: '✈️ 飛向夢想', dreamTarget: 50000, darkMode: false, isPrivacy: false
+        dreamName: '✈️ 飛向夢想', dreamTarget: 50000, dreamSafe: 0, darkMode: false, isPrivacy: false
     };
     let liveStocks = [], currentViewDate = new Date(), selectedDateStr = new Date().toLocaleDateString(), historyStack = [];
 
     if (storage.darkMode) document.documentElement.classList.add('dark');
-    
     function applyPrivacy() {
         document.body.classList.toggle('privacy-active', storage.isPrivacy);
         document.getElementById('privacy-btn').innerText = storage.isPrivacy ? '🙈' : '👁️';
     }
     function togglePrivacy() { storage.isPrivacy = !storage.isPrivacy; applyPrivacy(); saveAndRender(); }
     function toggleDarkMode() { storage.darkMode = !storage.darkMode; document.documentElement.classList.toggle('dark'); saveAndRender(); }
-    
     function switchTab(tab) {
         document.getElementById('tab-home').classList.toggle('hidden', tab !== 'home');
         document.getElementById('tab-calendar').classList.toggle('hidden', tab !== 'calendar');
@@ -222,23 +227,23 @@
         ['home', 'calendar', 'settings'].forEach(t => document.getElementById(`nav-${t}`).classList.toggle('active', t === tab));
         if(tab === 'calendar') renderCalendar();
         if(tab === 'settings') {
+            document.getElementById('setting-title').value = storage.customTitle;
             document.getElementById('setting-dream-name').value = storage.dreamName;
             document.getElementById('setting-dream-target').value = storage.dreamTarget;
+            document.getElementById('setting-dream-safe').value = storage.dreamSafe || 0;
         }
         window.scrollTo(0,0);
     }
-    
     function updateSettings() {
         const newTitle = document.getElementById('setting-title').value;
         if(newTitle) { storage.customTitle = newTitle; saveAndRender(); alert("更新成功！✨"); }
     }
-    
     function updateDreamSettings() {
         storage.dreamName = document.getElementById('setting-dream-name').value;
         storage.dreamTarget = parseFloat(document.getElementById('setting-dream-target').value) || 0;
-        saveAndRender(); alert("夢想藍圖更新成功！🚀");
+        storage.dreamSafe = parseFloat(document.getElementById('setting-dream-safe').value) || 0;
+        saveAndRender(); alert("更新成功！🚀");
     }
-    
     function renderCalendar() {
         const grid = document.getElementById('calendar-grid');
         const monthLabel = document.getElementById('calendar-month');
@@ -263,9 +268,7 @@
         }
         renderDayDetail(selectedDateStr);
     }
-    
     function selectDate(dateStr) { selectedDateStr = dateStr; renderCalendar(); }
-    
     function renderDayDetail(dateStr) {
         document.getElementById('selected-date-label').innerText = `${dateStr} 明細`;
         const list = document.getElementById('day-detail-list');
@@ -282,21 +285,18 @@
                 </div>
             </div>`).join('');
     }
-    
     function saveState() { if (historyStack.length > 20) historyStack.shift(); historyStack.push(JSON.stringify(storage)); }
     function undoLastAction() {
         if (historyStack.length === 0) return alert("無法復原囉！");
         storage = JSON.parse(historyStack.pop()); saveAndRender();
         if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
-    
     function deleteTrans(index) {
         if(!confirm('要刪除嗎？')) return;
         saveState(); const target = storage.trans[index];
         storage[target.acc] -= target.amount; storage.trans.splice(index, 1);
         saveAndRender(); if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
-    
     function addTrans() {
         const desc = document.getElementById('t-desc').value, amount = parseFloat(document.getElementById('t-amount').value);
         if(!desc || isNaN(amount)) return;
@@ -304,7 +304,6 @@
         storage.trans.push({ acc: storage.selectedAcc, desc, amount, date: new Date().toLocaleDateString() });
         saveAndRender(); document.getElementById('t-desc').value = ''; document.getElementById('t-amount').value = '';
     }
-    
     function quickWithdraw() {
         const amount = parseFloat(prompt("領多少出來？")); if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
@@ -312,7 +311,6 @@
         storage.trans.push({ acc: 'wallet', desc: `🏧 領出來`, amount: -amount, date: today }, { acc: 'cash', desc: `🏧 領錢存入`, amount, date: today });
         saveAndRender();
     }
-    
     function quickSave() {
         const amount = parseFloat(prompt("要存多少？")); if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
@@ -320,7 +318,6 @@
         storage.trans.push({ acc: 'wallet', desc: `💰 存起來`, amount: -amount, date: today }, { acc: 'savings', desc: `💰 定存`, amount, date: today });
         saveAndRender();
     }
-    
     function quickInvest() {
         const amount = parseFloat(prompt("要轉多少錢到交割戶？")); if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
@@ -328,10 +325,8 @@
         storage.trans.push({ acc: 'wallet', desc: `📉 放進去`, amount: -amount, date: today }, { acc: 'brokerage', desc: `📉 交割`, amount, date: today });
         saveAndRender();
     }
-    
     function saveAndRender() { localStorage.setItem('perfectMaster_V5', JSON.stringify(storage)); renderOverview(); }
     function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
-    
     function renderOverview() {
         document.getElementById('main-title').innerText = storage.customTitle;
         ['wallet', 'savings', 'brokerage', 'cash'].forEach(a => document.getElementById(`${a}-val`).innerText = `$ ${storage[a].toLocaleString()}`);
@@ -355,62 +350,25 @@
         document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + storage.cash + stockTotal).toLocaleString()}`;
         applyPrivacy();
     }
-
-    async function fetchGoogleData() { 
-        try { 
-            const res = await fetch(GOOGLE_API_URL); 
-            liveStocks = await res.json(); 
-            renderOverview(); 
-        } catch (e) { 
-            console.error("API Error"); 
-        } 
-    }
-    
+    async function fetchGoogleData() { try { const res = await fetch(GOOGLE_API_URL); liveStocks = await res.json(); renderOverview(); } catch (e) { console.error("API Error"); } }
     function setAcc(acc) {
         storage.selectedAcc = acc;
-        const colors = { 
-            wallet: storage.darkMode ? 'bg-amber-500' : 'bg-pink-500', 
-            savings: 'bg-indigo-500', 
-            brokerage: storage.darkMode ? 'bg-slate-600' : 'bg-slate-800', 
-            cash: 'bg-emerald-500' 
-        };
+        const colors = { wallet: storage.darkMode ? 'bg-amber-500' : 'bg-pink-500', savings: 'bg-indigo-500', brokerage: storage.darkMode ? 'bg-slate-600' : 'bg-slate-800', cash: 'bg-emerald-500' };
         ['wallet', 'savings', 'brokerage', 'cash'].forEach(a => {
             const btn = document.getElementById(`btn-${a}`);
             btn.className = `flex-1 py-2 rounded-lg text-[10px] font-bold transition ${a === acc ? colors[a] + ' text-white shadow-md' : 'text-slate-400'}`;
         });
     }
-
     function exportData() {
         const encoded = btoa(encodeURIComponent(JSON.stringify(storage)));
-        const dummy = document.createElement("textarea"); 
-        document.body.appendChild(dummy); 
-        dummy.value = encoded; 
-        dummy.select(); 
-        document.execCommand("copy"); 
-        document.body.removeChild(dummy);
+        const dummy = document.createElement("textarea"); document.body.appendChild(dummy); dummy.value = encoded; dummy.select(); document.execCommand("copy"); document.body.removeChild(dummy);
         alert("備份已複製！");
     }
-
     function importData() { 
-        const code = prompt("請貼上代碼："); 
-        if(code) { 
-            try { 
-                storage = JSON.parse(decodeURIComponent(atob(code))); 
-                if (storage.darkMode) document.documentElement.classList.add('dark');
-                else document.documentElement.classList.remove('dark');
-                saveAndRender(); 
-                alert("資料已還原！"); 
-            } catch(e) { 
-                alert("代碼錯誤！"); 
-            } 
-        } 
+        const code = prompt("請貼上代碼："); if(code) { try { storage = JSON.parse(decodeURIComponent(atob(code))); if (storage.darkMode) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); saveAndRender(); alert("資料已還原！"); } catch(e) { alert("代碼錯誤！"); } } 
     }
-
-    // 初始執行
-    applyPrivacy();
-    setAcc(storage.selectedAcc || 'wallet'); 
-    fetchGoogleData(); 
-    renderOverview();
+    function clearHistory() { if(confirm('確定要清空所有紀錄嗎？')) { storage = { wallet:0, savings:0, brokerage:0, cash:0, trans:[], customTitle: '💎 額冷的paisu', selectedAcc: 'wallet', dreamName: '✈️ 飛向夢想', dreamTarget: 50000, dreamSafe: 0, darkMode: storage.darkMode, isPrivacy: storage.isPrivacy }; saveAndRender(); } }
+    applyPrivacy(); setAcc(storage.selectedAcc || 'wallet'); fetchGoogleData(); renderOverview();
 </script>
 </body>
 </html>
