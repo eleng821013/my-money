@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>額冷的Paisu V5.0 - 月曆修正版</title>
+    <title>額冷的Paisu V5.0 - 紀錄搬家版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <style>
@@ -21,13 +21,12 @@
 <body class="p-3 md:p-8">
 
 <div class="max-w-6xl mx-auto">
-    <!-- 頂部總覽 -->
     <header class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="text-center md:text-left">
             <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
                 <h1 class="text-2xl md:text-3xl font-black text-pink-500 tracking-tighter">💎 額冷的paisu</h1>
-                <a href="https://docs.google.com/spreadsheets/d/1sSJsUmdTPTF4Wh9hcGO0p-5hMSrbPCgGBhnBYR-Z2PQ/edit?usp=sharing" target="_blank" 
-                   class="bg-white border border-pink-200 text-pink-400 px-2 py-1 rounded-full text-[10px] font-bold hover:bg-pink-50 transition shadow-sm">
+                <a href="https://docs.google.com/spreadsheets/d/1sSJsUmdTPTF4Wh9hcGO0p-5hMSrbPCgGBhnBYR-Z2PQ/edit?usp=sharing="_blank" 
+                   class="bg-white border border-pink-200 text-pink-400 px-2 py-1 rounded-full text-[10px] font-bold shadow-sm">
                    <i class="fas fa-edit mr-1"></i> 更新股數
                 </a>
             </div>
@@ -35,11 +34,9 @@
         </div>
     </header>
 
-    <!-- 分頁內容區 -->
     <main id="content-area">
-        <!-- 分頁 1: 總覽與記帳 -->
+        <!-- 總覽分頁 -->
         <section id="tab-home" class="space-y-6">
-            <!-- 股票表格 -->
             <div class="glass-card p-5">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-black text-pink-600"><i class="fas fa-chart-line mr-2"></i>投資市值</h2>
@@ -47,19 +44,11 @@
                 </div>
                 <div class="overflow-x-auto text-sm">
                     <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-slate-400 text-[10px] border-b border-pink-50">
-                                <th class="pb-2">名稱</th>
-                                <th class="pb-2 text-right text-pink-400">市價</th>
-                                <th class="pb-2 text-right">市值</th>
-                            </tr>
-                        </thead>
                         <tbody id="stock-list"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 四帳戶 -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div class="glass-card p-3 border-l-4 border-pink-400"><p class="text-[10px] text-slate-400 font-bold">生活錢包</p><p id="wallet-val" class="font-black text-slate-700">$ 0</p></div>
                 <div class="glass-card p-3 border-l-4 border-indigo-400"><p class="text-[10px] text-indigo-400 font-bold">儲蓄帳戶</p><p id="savings-val" class="font-black text-indigo-600">$ 0</p></div>
@@ -67,11 +56,10 @@
                 <div class="glass-card p-3 border-l-4 border-emerald-400"><p class="text-[10px] text-emerald-500 font-bold">口袋現金</p><p id="cash-val" class="font-black text-slate-700">$ 0</p></div>
             </div>
 
-            <!-- 快速記帳 -->
             <div class="glass-card p-6 space-y-4">
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold"><i class="fas fa-bolt mr-1"></i> ATM 提款</button>
-                    <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold"><i class="fas fa-piggy-bank mr-1"></i> 💰 存起來</button>
+                    <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">🏧 提款轉現</button>
+                    <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">💰 生活轉儲</button>
                 </div>
                 <div class="flex gap-1.5 p-1 bg-slate-100 rounded-xl">
                     <button onclick="setAcc('wallet')" id="btn-wallet" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition">生活</button>
@@ -87,7 +75,7 @@
             </div>
         </section>
 
-        <!-- 分頁 2: 歷史月曆 -->
+        <!-- 月曆分頁 -->
         <section id="tab-calendar" class="hidden space-y-6">
             <div class="glass-card p-5">
                 <div class="flex justify-between items-center mb-4">
@@ -100,7 +88,6 @@
                 </div>
                 <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
             </div>
-
             <div class="glass-card p-5">
                 <div class="flex justify-between items-center mb-4">
                     <h3 id="selected-date-label" class="font-black text-slate-700 text-sm">日期明細</h3>
@@ -108,8 +95,6 @@
                 </div>
                 <div id="day-detail-list" class="space-y-3"></div>
             </div>
-            
-            <!-- 數據管理 -->
             <div class="glass-card p-5 bg-slate-50/50">
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="exportData()" class="py-2 bg-white border border-slate-200 text-slate-600 rounded-lg font-bold text-[10px]">📥 備份</button>
@@ -120,7 +105,6 @@
         </section>
     </main>
 
-    <!-- 底部導航欄 -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-pink-100 flex justify-around items-center h-16 px-4 z-50">
         <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 tab-active">
             <i class="fas fa-wallet text-xl"></i><span class="text-[10px] font-bold">資產總覽</span>
@@ -133,9 +117,29 @@
 
 <script>
     const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbziOxOkH-JDDXJSQFSn0t4_9hVto_VhBl1SauC1AAbhaavX6HF0pg7bWi85Iv-PAPPW/exec';
-    let storage = JSON.parse(localStorage.getItem('perfectMaster_V5')) || { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] };
+    
+    // 【搬家邏輯】檢查舊版 V4 紀錄並搬移
+    let storage;
+    const oldData = localStorage.getItem('perfectMaster_V4');
+    const newData = localStorage.getItem('perfectMaster_V5');
+
+    if (!newData && oldData) {
+        // 如果沒有新版紀錄但有舊版，執行搬家
+        storage = JSON.parse(oldData);
+        // 舊版的紀錄可能沒有日期資訊，搬家時幫它們補上「今天」的日期，以免在月曆找不到
+        storage.trans = storage.trans.map(t => ({
+            ...t,
+            date: t.date || new Date().toLocaleDateString()
+        }));
+        localStorage.setItem('perfectMaster_V5', JSON.stringify(storage));
+        alert("偵測到舊版紀錄，已自動搬移到月曆版囉！✨");
+    } else {
+        storage = JSON.parse(newData) || { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] };
+    }
+
     let liveStocks = [], currentViewDate = new Date(), selectedDateStr = new Date().toLocaleDateString(), historyStack = [];
 
+    // --- 其餘功能與之前相同 ---
     function switchTab(tab) {
         document.getElementById('tab-home').classList.toggle('hidden', tab !== 'home');
         document.getElementById('tab-calendar').classList.toggle('hidden', tab !== 'calendar');
@@ -202,7 +206,6 @@
 
     function saveState() { if (historyStack.length > 10) historyStack.shift(); historyStack.push(JSON.stringify(storage)); }
     function undoLastAction() { if (historyStack.length === 0) return alert("無法復原！"); storage = JSON.parse(historyStack.pop()); saveAndRender(); }
-
     function saveAndRender() { localStorage.setItem('perfectMaster_V5', JSON.stringify(storage)); renderOverview(); if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar(); }
 
     function renderOverview() {
