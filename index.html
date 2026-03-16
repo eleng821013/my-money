@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>額冷的paisuV4.6</title>
+    <title>額冷的Paisu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <style>
@@ -38,12 +38,12 @@
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-3 space-y-6">
             <!-- 1. 股票表格 -->
             <div class="glass-card p-5 md:p-8">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-black text-pink-600"><i class="fas fa-chart-line mr-2"></i>投資市值</h2>
-                    <button onclick="fetchGoogleData()" class="text-[10px] bg-pink-50 text-pink-500 px-3 py-1.5 rounded-full font-bold">刷新</button>
+                    <button onclick="fetchGoogleData()" class="text-[10px] bg-pink-50 text-pink-500 px-3 py-1.5 rounded-full font-bold">刷新行情</button>
                 </div>
                 <div class="overflow-x-auto -mx-2 px-2 text-sm">
                     <table class="w-full text-left border-collapse min-w-[300px]">
@@ -66,15 +66,15 @@
                 <div class="glass-card p-3 border-l-4 border-emerald-400"><p class="text-[10px] text-emerald-500 font-bold">口袋現金</p><p id="cash-val" class="text-lg font-black text-slate-700">$ 0</p></div>
             </div>
 
-            <!-- 3. 快速記帳 (含新增的一鍵功能) -->
+            <!-- 3. 快速記帳 -->
             <div class="glass-card p-6 space-y-4">
-                <h3 class="font-black text-slate-700 text-lg">✍️ 快速記帳</h3>
+                <h3 class="font-black text-slate-700 text-lg text-center md:text-left">✍️ 快速記帳</h3>
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">
                         <i class="fas fa-bolt mr-1"></i> ATM 提款 (生活轉現)
                     </button>
                     <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">
-                        <i class="fas fa-piggy-bank mr-1"></i> 存起來 (生活轉儲)
+                        <i class="fas fa-piggy-bank mr-1"></i> 💰 存起來 (生活轉儲)
                     </button>
                 </div>
                 <div class="flex gap-1.5 p-1 bg-slate-100 rounded-xl">
@@ -89,28 +89,24 @@
                 </div>
                 <button onclick="addTrans()" class="w-full btn-pink text-white py-3.5 rounded-xl font-black shadow-lg">紀錄入帳 / 支出</button>
             </div>
-        </div>
 
-        <!-- 數據管理 -->
-        <div class="space-y-6 text-center">
-            <div class="glass-card p-6">
-                <h3 class="font-black text-slate-700 mb-4 text-sm">⚙️ 數據管理</h3>
-                <div class="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                    <button onclick="exportData()" class="py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-bold text-[10px]">📥 備份數據</button>
-                    <button onclick="importData()" class="py-2.5 bg-slate-50 text-slate-600 rounded-xl font-bold text-[10px]">📤 還原數據</button>
-                    <button onclick="clearHistory()" class="col-span-2 lg:col-span-1 mt-2 text-rose-300 font-bold text-[10px] underline">清空資料</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. 帳務流水帳 -->
-        <div class="lg:col-span-3">
+            <!-- 4. 最近帳務流水 -->
             <div class="glass-card p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-black text-slate-700">📜 最近帳務流水</h3>
-                    <button onclick="undoLastAction()" class="text-[10px] text-indigo-500 font-bold"><i class="fas fa-undo-alt mr-1"></i> 復原</button>
+                    <button onclick="undoLastAction()" class="text-[10px] text-indigo-500 font-bold"><i class="fas fa-undo-alt mr-1"></i> 復原上一步</button>
                 </div>
                 <div id="trans-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- 5. 數據管理 (移至最底) -->
+            <div class="glass-card p-6 border-dashed border-pink-100">
+                <h3 class="font-black text-slate-400 mb-4 text-center text-xs tracking-widest uppercase">⚙️ 數據管理中心</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                    <button onclick="exportData()" class="py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-bold text-[10px] hover:bg-indigo-100 transition">📥 備份數據</button>
+                    <button onclick="importData()" class="py-2.5 bg-slate-50 text-slate-600 rounded-xl font-bold text-[10px] hover:bg-slate-100 transition">📤 還原數據</button>
+                    <button onclick="clearHistory()" class="col-span-2 md:col-span-1 py-2.5 text-rose-300 font-bold text-[10px] underline hover:text-rose-500 transition">清空所有資料</button>
+                </div>
             </div>
         </div>
     </div>
@@ -127,7 +123,7 @@
         const dummy = document.createElement("textarea");
         document.body.appendChild(dummy); dummy.value = encodedData; dummy.select();
         document.execCommand("copy"); document.body.removeChild(dummy);
-        alert("備份代碼已複製！");
+        alert("備份代碼已複製到剪貼簿！");
     }
 
     function importData() {
@@ -137,7 +133,7 @@
             storage = JSON.parse(decodeURIComponent(atob(code)));
             saveAndRender();
             alert("還原成功！");
-        } catch (e) { alert("格式錯誤！"); }
+        } catch (e) { alert("代碼格式不正確！"); }
     }
 
     function saveState() {
@@ -146,12 +142,11 @@
     }
 
     function undoLastAction() {
-        if (historyStack.length === 0) return alert("無法復原！");
+        if (historyStack.length === 0) return alert("沒有紀錄可以復原喔！");
         storage = JSON.parse(historyStack.pop());
         saveAndRender();
     }
 
-    // --- 一鍵功能 ---
     function quickWithdraw() {
         const amount = parseFloat(prompt("提款金額 (生活 -> 現金)："));
         if (!amount || amount <= 0) return;
@@ -215,7 +210,8 @@
         if(liveStocks) {
             liveStocks.forEach(s => {
                 const val = s.price * s.qty; stockTotal += val;
-                sList.innerHTML += `<tr class="border-b border-pink-50"><td class="py-4 font-bold text-slate-700">${s.name}</td><td class="text-right text-slate-500 text-xs">${s.qty}</td><td class="text-right text-pink-500 font-bold">$${s.price.toFixed(1)}</td><td class="text-right font-black text-slate-700">$${Math.round(val).toLocaleString()}</td></tr>`;
+                // 此處修改為 .toFixed(2) 顯示小數點兩位
+                sList.innerHTML += `<tr class="border-b border-pink-50"><td class="py-4 font-bold text-slate-700">${s.name}</td><td class="text-right text-slate-500 text-xs">${s.qty.toLocaleString()}</td><td class="text-right text-pink-500 font-bold">$${s.price.toFixed(2)}</td><td class="text-right font-black text-slate-700">$${Math.round(val).toLocaleString()}</td></tr>`;
             });
         }
         document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + storage.cash + stockTotal).toLocaleString()}`;
@@ -228,7 +224,10 @@
     }
 
     function clearHistory() {
-        if(confirm('確定清空？')) { storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] }; saveAndRender(); }
+        if(confirm('確定要清空所有資料嗎？這將無法恢復。')) { 
+            storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] }; 
+            saveAndRender(); 
+        }
     }
 
     setAcc('wallet');
