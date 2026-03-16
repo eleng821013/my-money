@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>額冷的Paisu V6.2</title>
+    <title>額冷的Paisu V7.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <style>
@@ -12,20 +12,12 @@
         .glass-card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(244, 114, 182, 0.1); border: 1px solid #fce7f3; }
         .btn-pink { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); transition: all 0.3s ease; color: white; font-weight: 900; }
         .btn-action { background: #fdf2f8; border: 1.5px dashed #f472b6; color: #db2777; }
-        
-        /* 底部導航 */
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 75px; display: flex; align-items: center; border-top: 1px solid #fce7f3; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s; color: #94a3b8; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 75px; display: flex; align-items: center; border-top: 1px solid #fce7f3; z-index: 100; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; transition: 0.3s; }
         .nav-item.active { color: #f472b6; transform: translateY(-2px); }
-        .nav-item .icon { font-size: 1.4rem; margin-bottom: 2px; }
-        .nav-item span { font-size: 11px; font-weight: 900; }
-
-        /* 月曆與動畫 */
         .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0.75rem; position: relative; font-size: 0.85rem; font-weight: 700; }
         .calendar-day.has-data::after { content: ''; position: absolute; bottom: 5px; width: 4px; height: 4px; background: #f472b6; border-radius: 50%; }
         .calendar-day.selected { background: #f472b6 !important; color: white !important; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-4">
@@ -33,11 +25,11 @@
 <div class="max-w-4xl mx-auto pb-28">
     <header class="mb-6 flex justify-between items-end">
         <div>
-            <h1 class="text-2xl font-black text-pink-500 tracking-tighter">💎 額冷的paisu</h1>
-            <p class="text-xs text-slate-400 font-bold">小資產大夢想 ‧ V6.2</p>
+            <h1 id="main-title" class="text-2xl font-black text-pink-500 tracking-tighter">💎 額冷的paisu</h1>
+            <p class="text-xs text-slate-400 font-bold">小資產大夢想 ‧ V7.5</p>
         </div>
         <div class="text-right">
-            <p class="text-[10px] text-slate-400 font-bold uppercase">Net Worth</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Net Worth</p>
             <p id="total-net-worth" class="text-xl font-black text-slate-700">$ 0</p>
         </div>
     </header>
@@ -48,12 +40,10 @@
             <div class="glass-card p-5">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-black text-pink-500 text-sm">📈 投資市值</h2>
-                    <a href="https://docs.google.com/spreadsheets/d/1sSJsUmdTPTF4Wh9hcGO0p-5hMSrbPCgGBhnBYR-Z2PQ/edit?usp=sharing" target="_blank" class="text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded-md font-bold">
-                        <i class="fas fa-edit mr-1"></i>股數
-                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1sSJsUmdTPTF4Wh9hcGO0p-5hMSrbPCgGBhnBYR-Z2PQ/edit?usp=sharing" target="_blank" class="text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded-md font-bold">更新股數</a>
                 </div>
                 <div class="overflow-x-auto"><table class="w-full text-xs text-left"><tbody id="stock-list"></tbody></table></div>
-                <button onclick="fetchGoogleData()" class="w-full mt-4 py-2 bg-pink-50 text-pink-500 rounded-xl text-[10px] font-bold tracking-widest">刷新行情</button>
+                <button onclick="fetchGoogleData()" class="w-full mt-4 py-2 bg-pink-50 text-pink-500 rounded-xl text-[10px] font-bold">刷新行情</button>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -64,10 +54,11 @@
             </div>
 
             <div class="glass-card p-6 space-y-4 shadow-xl">
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">提款轉現</button>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">🏧 領出來</button>
                     <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">💰 存起來</button>
-                </div>
+                    <button onclick="quickInvest()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">📉 放進去</button>
+            </div>
                 <div class="flex gap-1.5 p-1 bg-slate-100 rounded-xl">
                     <button onclick="setAcc('wallet')" id="btn-wallet" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition">生活</button>
                     <button onclick="setAcc('savings')" id="btn-savings" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition">儲蓄</button>
@@ -75,7 +66,7 @@
                     <button onclick="setAcc('cash')" id="btn-cash" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition">現金</button>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
-                    <input type="text" id="t-desc" placeholder="做什麼呢？" class="col-span-2 bg-slate-50 p-4 rounded-xl outline-none text-sm">
+                    <input type="text" id="t-desc" placeholder="項目內容" class="col-span-2 bg-slate-50 p-4 rounded-xl outline-none text-sm">
                     <input type="number" id="t-amount" placeholder="金額" class="col-span-1 bg-slate-50 p-4 rounded-xl outline-none text-sm">
                 </div>
                 <button onclick="addTrans()" class="w-full btn-pink py-4 rounded-2xl shadow-lg">紀錄入帳 / 支出</button>
@@ -87,32 +78,56 @@
             <div class="glass-card p-5">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <button onclick="changeMonth(-1)" class="text-pink-300 font-bold p-2">◀</button>
-                    <h2 id="calendar-month" class="font-black text-slate-700">2024年 10月</h2>
+                    <h2 id="calendar-month" class="font-black text-slate-700">月曆</h2>
                     <button onclick="changeMonth(1)" class="text-pink-300 font-bold p-2">▶</button>
                 </div>
-                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-2">
-                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-2 uppercase">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
                 </div>
                 <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 px-1">
+                <div class="glass-card p-4"><p class="text-[9px] text-slate-400 font-black uppercase mb-1">本月收入</p><p id="monthly-income" class="text-lg font-black text-emerald-500">$ 0</p></div>
+                <div class="glass-card p-4"><p class="text-[9px] text-slate-400 font-black uppercase mb-1">本月支出</p><p id="monthly-expense" class="text-lg font-black text-rose-400">$ 0</p></div>
             </div>
 
             <div class="space-y-3">
                 <div class="flex justify-between items-center px-2">
                     <h3 id="selected-date-label" class="font-black text-slate-700 text-sm">日期明細</h3>
-                    <!-- ↩️ 復原按鈕 -->
-                    <button onclick="undoLastAction()" class="flex items-center gap-1 text-[10px] text-pink-500 font-bold bg-white px-3 py-1.5 rounded-full border border-pink-100 shadow-sm active:scale-95 transition">
-                        <span>↩️ 復原上一步</span>
-                    </button>
+                    <button onclick="undoLastAction()" class="text-[10px] text-pink-500 font-bold bg-white px-3 py-1.5 rounded-full border border-pink-100">↩️ 復原</button>
                 </div>
                 <div id="day-detail-list" class="space-y-3"></div>
             </div>
+        </section>
 
-            <div class="glass-card p-5 bg-slate-50/50">
-                <p class="text-[10px] text-slate-300 font-bold text-center mb-3 tracking-widest uppercase">Data Management</p>
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="exportData()" class="py-2.5 bg-white border border-slate-100 text-slate-400 rounded-xl font-bold text-[10px]">備份</button>
-                    <button onclick="importData()" class="py-2.5 bg-white border border-slate-100 text-slate-400 rounded-xl font-bold text-[10px]">還原</button>
-                    <button onclick="clearHistory()" class="py-2.5 bg-white border border-rose-50 text-rose-200 rounded-xl font-bold text-[10px]">清空</button>
+        <!-- 分頁 3: 設定 ⚙️ -->
+        <section id="tab-settings" class="hidden space-y-6">
+            <div class="glass-card p-6 space-y-6">
+                <h3 class="font-black text-slate-700 text-sm border-b pb-2">⚙️ 個人化設定</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold block mb-1">自訂管家名稱</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="setting-title" placeholder="例如：我的小金庫" class="flex-1 bg-slate-50 p-3 rounded-xl text-sm outline-none">
+                            <button onclick="updateSettings()" class="bg-pink-500 text-white px-4 rounded-xl text-xs font-bold">更新</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 space-y-4">
+                <h3 class="font-black text-slate-700 text-sm border-b pb-2">📥 數據安全</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="exportData()" class="w-full py-3 bg-indigo-50 text-indigo-600 rounded-xl font-bold text-xs text-left px-4 flex justify-between items-center">
+                        <span>備份資料 (複製代碼)</span> <i class="fas fa-copy opacity-50"></i>
+                    </button>
+                    <button onclick="importData()" class="w-full py-3 bg-slate-50 text-slate-600 rounded-xl font-bold text-xs text-left px-4 flex justify-between items-center">
+                        <span>還原資料 (貼上代碼)</span> <i class="fas fa-file-import opacity-50"></i>
+                    </button>
+                    <button onclick="clearHistory()" class="w-full py-3 bg-rose-50 text-rose-400 rounded-xl font-bold text-xs text-left px-4 flex justify-between items-center">
+                        <span>清空所有紀錄</span> <i class="fas fa-trash-alt opacity-50"></i>
+                    </button>
                 </div>
             </div>
         </section>
@@ -120,28 +135,33 @@
 </div>
 
 <nav class="nav-bar">
-    <button onclick="switchTab('home')" id="nav-home" class="nav-item active">
-        <div class="icon">👛</div>
-        <span>資產</span>
-    </button>
-    <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-item">
-        <div class="icon">📆</div>
-        <span>明細</span>
-    </button>
+    <button onclick="switchTab('home')" id="nav-home" class="nav-item active"><div class="text-xl">👛</div><span class="font-bold">資產</span></button>
+    <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-item"><div class="text-xl">📆</div><span class="font-bold">明細</span></button>
+    <button onclick="switchTab('settings')" id="nav-settings" class="nav-item"><div class="text-xl">⚙️</div><span class="font-bold">設定</span></button>
 </nav>
 
 <script>
     const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbziOxOkH-JDDXJSQFSn0t4_9hVto_VhBl1SauC1AAbhaavX6HF0pg7bWi85Iv-PAPPW/exec';
-    let storage = JSON.parse(localStorage.getItem('perfectMaster_V5')) || { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [] };
+    let storage = JSON.parse(localStorage.getItem('perfectMaster_V5')) || { wallet: 0, savings: 0, brokerage: 0, cash: 0, trans: [], customTitle: '💎 額冷的paisu' };
     let liveStocks = [], currentViewDate = new Date(), selectedDateStr = new Date().toLocaleDateString(), historyStack = [];
 
     function switchTab(tab) {
         document.getElementById('tab-home').classList.toggle('hidden', tab !== 'home');
         document.getElementById('tab-calendar').classList.toggle('hidden', tab !== 'calendar');
-        document.getElementById('nav-home').classList.toggle('active', tab === 'home');
-        document.getElementById('nav-calendar').classList.toggle('active', tab === 'calendar');
+        document.getElementById('tab-settings').classList.toggle('hidden', tab !== 'settings');
+        ['home', 'calendar', 'settings'].forEach(t => document.getElementById(`nav-${t}`).classList.toggle('active', t === tab));
         if(tab === 'calendar') renderCalendar();
         window.scrollTo(0,0);
+    }
+
+    function updateSettings() {
+        const newTitle = document.getElementById('setting-title').value;
+        if(newTitle) {
+            storage.customTitle = newTitle;
+            document.getElementById('main-title').innerText = newTitle;
+            saveAndRender();
+            alert("名稱已更新！✨");
+        }
     }
 
     function renderCalendar() {
@@ -152,6 +172,18 @@
         monthLabel.innerText = `${year}年 ${month + 1}月`;
         const firstDay = new Date(year, month, 1).getDay(), lastDate = new Date(year, month + 1, 0).getDate();
         for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div></div>';
+        
+        let income = 0, expense = 0;
+        storage.trans.forEach(t => {
+            const tDate = new Date(t.date);
+            if(tDate.getFullYear() === year && tDate.getMonth() === month) {
+                if(t.amount > 0) income += t.amount;
+                else expense += Math.abs(t.amount);
+            }
+        });
+        document.getElementById('monthly-income').innerText = `$ ${income.toLocaleString()}`;
+        document.getElementById('monthly-expense').innerText = `$ ${expense.toLocaleString()}`;
+
         for (let d = 1; d <= lastDate; d++) {
             const dateStr = new Date(year, month, d).toLocaleDateString();
             const hasData = storage.trans.some(t => t.date === dateStr);
@@ -166,39 +198,29 @@
         document.getElementById('selected-date-label').innerText = `${dateStr} 明細`;
         const list = document.getElementById('day-detail-list');
         const dayTrans = storage.trans.map((t, idx) => ({...t, originalIndex: idx})).filter(t => t.date === dateStr);
-        list.innerHTML = dayTrans.length === 0 ? `<div class="glass-card p-10 text-center text-slate-300 text-xs font-bold">這天沒有紀錄唷 🍵</div>` : 
-            dayTrans.reverse().map(t => `
-                <div class="glass-card p-4 flex justify-between items-center animate-fade-in">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase">${t.acc}</div>
-                        <div>
-                            <p class="font-bold text-xs text-slate-600">${t.desc}</p>
-                            <p class="text-[9px] text-slate-300 font-black uppercase">${t.acc}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-black text-sm ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">${t.amount > 0 ? '+' : ''}${t.amount.toLocaleString()}</span>
-                        <button onclick="deleteTrans(${t.originalIndex})" class="text-slate-200 hover:text-rose-300 p-2 transition">🗑️</button>
-                    </div>
+        list.innerHTML = dayTrans.length === 0 ? `<div class="glass-card p-10 text-center text-slate-300 text-xs font-bold">🍵 休息日</div>` : 
+            dayTrans.reverse().map(t => `<div class="glass-card p-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[9px] font-black text-slate-400 uppercase">${t.acc}</div>
+                    <div><p class="font-bold text-xs text-slate-600">${t.desc}</p><p class="text-[9px] text-slate-300 font-black uppercase">${t.acc}</p></div>
                 </div>
-            `).join('');
+                <div class="flex items-center gap-4">
+                    <span class="font-black text-sm ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">${t.amount > 0 ? '+' : ''}${t.amount.toLocaleString()}</span>
+                    <button onclick="deleteTrans(${t.originalIndex})" class="text-slate-200 p-2">🗑️</button>
+                </div>
+            </div>`).join('');
     }
 
-    function saveState() {
-        if (historyStack.length > 20) historyStack.shift();
-        historyStack.push(JSON.stringify(storage));
-    }
-
+    function saveState() { if (historyStack.length > 20) historyStack.shift(); historyStack.push(JSON.stringify(storage)); }
     function undoLastAction() {
-        if (historyStack.length === 0) return alert("沒有紀錄可以復原囉！");
+        if (historyStack.length === 0) return alert("無法復原囉！");
         storage = JSON.parse(historyStack.pop());
         saveAndRender();
         if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
-        alert("已恢復上一步狀態！↩️");
     }
 
     function deleteTrans(index) {
-        if(!confirm('確定要刪除這筆紀錄嗎？')) return;
+        if(!confirm('要刪除嗎？')) return;
         saveState();
         const target = storage.trans[index];
         storage[target.acc] -= target.amount;
@@ -218,16 +240,16 @@
     }
 
     function quickWithdraw() {
-        const amount = parseFloat(prompt("提款金額 (生活 -> 現金)："));
+        const amount = parseFloat(prompt("領多少出來？"));
         if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
         storage.wallet -= amount; storage.cash += amount;
-        storage.trans.push({ acc: 'wallet', desc: `🏧 提款`, amount: -amount, date: today }, { acc: 'cash', desc: `🏧 提款存入`, amount, date: today });
+        storage.trans.push({ acc: 'wallet', desc: `🏧 領出來`, amount: -amount, date: today }, { acc: 'cash', desc: `🏧 領錢存入`, amount, date: today });
         saveAndRender();
     }
 
     function quickSave() {
-        const amount = parseFloat(prompt("要存多少錢呢？ (生活 -> 儲蓄)："));
+        const amount = parseFloat(prompt("要存多少？"));
         if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
         storage.wallet -= amount; storage.savings += amount;
@@ -235,10 +257,20 @@
         saveAndRender();
     }
 
+    function quickInvest() {
+        const amount = parseFloat(prompt("要轉多少錢到交割戶？"));
+        if (!amount || amount <= 0) return;
+        saveState(); const today = new Date().toLocaleDateString();
+        storage.wallet -= amount; storage.brokerage += amount;
+        storage.trans.push({ acc: 'wallet', desc: `📉 放進去(轉出)`, amount: -amount, date: today }, { acc: 'brokerage', desc: `📉 放進去(交割)`, amount, date: today });
+        saveAndRender();
+    }
+
     function saveAndRender() { localStorage.setItem('perfectMaster_V5', JSON.stringify(storage)); renderOverview(); }
     function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
 
     function renderOverview() {
+        document.getElementById('main-title').innerText = storage.customTitle || '💎 額冷的paisu';
         ['wallet', 'savings', 'brokerage', 'cash'].forEach(a => document.getElementById(`${a}-val`).innerText = `$ ${storage[a].toLocaleString()}`);
         const sList = document.getElementById('stock-list'); sList.innerHTML = ''; let stockTotal = 0;
         liveStocks.forEach(s => {
@@ -261,10 +293,10 @@
     function exportData() {
         const encoded = btoa(encodeURIComponent(JSON.stringify(storage)));
         const dummy = document.createElement("textarea"); document.body.appendChild(dummy); dummy.value = encoded; dummy.select(); document.execCommand("copy"); document.body.removeChild(dummy);
-        alert("備份代碼已複製！");
+        alert("備份已複製！");
     }
-    function importData() { const code = prompt("請貼上代碼："); if(code) { storage = JSON.parse(decodeURIComponent(atob(code))); saveAndRender(); alert("資料已恢復！"); } }
-    function clearHistory() { if(confirm('確定要清空？')) { storage = { wallet:0, savings:0, brokerage:0, cash:0, trans:[] }; saveAndRender(); } }
+    function importData() { const code = prompt("請貼上代碼："); if(code) { storage = JSON.parse(decodeURIComponent(atob(code))); saveAndRender(); alert("資料已還原！"); } }
+    function clearHistory() { if(confirm('確定要清空？')) { storage = { wallet:0, savings:0, brokerage:0, cash:0, trans:[], customTitle: '💎 額冷的paisu' }; saveAndRender(); } }
 
     setAcc('wallet'); fetchGoogleData(); renderOverview();
 </script>
