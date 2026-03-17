@@ -107,17 +107,17 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div class="glass-card p-4 border-l-4 border-pink-400 dark:border-gold"><p class="text-[10px] text-slate-400 dark:text-slate-300 font-bold">生活</p><p id="wallet-val" class="font-black text-slate-700 dark:text-white amount-val">$ 0</p></div>
-                <div class="glass-card p-4 border-l-4 border-indigo-400"><p class="text-[10px] text-indigo-400 font-bold">儲蓄</p><p id="savings-val" class="font-black text-indigo-600 dark:text-indigo-300 amount-val">$ 0</p></div>
-                <div class="glass-card p-4 border-l-4 border-yellow-400"><p class="text-[10px] text-yellow-500 font-bold">交割</p><p id="brokerage-val" class="font-black text-slate-700 dark:text-white amount-val">$ 0</p></div>
-                <div class="glass-card p-4 border-l-4 border-emerald-400"><p class="text-[10px] text-emerald-500 font-bold">現金</p><p id="cash-val" class="font-black text-slate-700 dark:text-white amount-val">$ 0</p></div>
+                <div class="glass-card p-4 border-l-4 border-pink-400 dark:border-gold"><p class="text-[10px] text-slate-400 dark:text-slate-300 font-bold">Richart生活帳戶</p><p id="wallet-val" class="font-black text-slate-700 dark:text-white amount-val">$ 0</p></div>
+                <div class="glass-card p-4 border-l-4 border-indigo-400"><p class="text-[10px] text-indigo-400 font-bold">儲蓄帳戶(預備金)</p><p id="savings-val" class="font-black text-indigo-600 dark:text-indigo-300 amount-val">$ 0</p></div>
+                <div class="glass-card p-4 border-l-4 border-yellow-400"><p class="text-[10px] text-yellow-500 font-bold">交割帳戶</p><p id="brokerage-val" class="font-black text-slate-700 dark:text-white amount-val">$ 0</p></div>
+                <div class="glass-card p-4 border-l-4 border-emerald-400"><p class="text-[10px] text-emerald-500 font-bold">口袋現金</p><p id="cash-val" class="font-black text-slate-700 dark:text-white amount-val">$ 0</p></div>
             </div>
 
             <div class="glass-card p-6 space-y-4 shadow-xl">
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">🏧 領出來</button>
-                    <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">💰 存起來</button>
-                    <button onclick="quickInvest()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">📉 放進去</button>
+                    <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">🏧 領出來(放口袋)</button>
+                    <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">💰 存起來(預備金)</button>
+                    <button onclick="quickInvest()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">📉 放進去(交割戶)</button>
                 </div>
                 <div class="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
                     <button onclick="setAcc('wallet')" id="btn-wallet" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition">生活</button>
@@ -308,21 +308,21 @@
         const amount = parseFloat(prompt("領多少出來？")); if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
         storage.wallet -= amount; storage.cash += amount;
-        storage.trans.push({ acc: 'wallet', desc: `🏧 領出來`, amount: -amount, date: today }, { acc: 'cash', desc: `🏧 領錢存入`, amount, date: today });
+        storage.trans.push({ acc: 'wallet', desc: `🏧 領出來`, amount: -amount, date: today }, { acc: 'cash', desc: `🏧 領錢放口袋`, amount, date: today });
         saveAndRender();
     }
     function quickSave() {
         const amount = parseFloat(prompt("要存多少？")); if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
         storage.wallet -= amount; storage.savings += amount;
-        storage.trans.push({ acc: 'wallet', desc: `💰 存起來`, amount: -amount, date: today }, { acc: 'savings', desc: `💰 定存`, amount, date: today });
+        storage.trans.push({ acc: 'wallet', desc: `💰 存起來`, amount: -amount, date: today }, { acc: 'savings', desc: `💰 存預備金`, amount, date: today });
         saveAndRender();
     }
     function quickInvest() {
         const amount = parseFloat(prompt("要轉多少錢到交割戶？")); if (!amount || amount <= 0) return;
         saveState(); const today = new Date().toLocaleDateString();
         storage.wallet -= amount; storage.brokerage += amount;
-        storage.trans.push({ acc: 'wallet', desc: `📉 放進去`, amount: -amount, date: today }, { acc: 'brokerage', desc: `📉 交割`, amount, date: today });
+        storage.trans.push({ acc: 'wallet', desc: `📉 放進去`, amount: -amount, date: today }, { acc: 'brokerage', desc: `📉 進交割戶`, amount, date: today });
         saveAndRender();
     }
     function saveAndRender() { localStorage.setItem('perfectMaster_V5', JSON.stringify(storage)); renderOverview(); }
