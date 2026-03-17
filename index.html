@@ -220,7 +220,7 @@
                     <button onclick="quickWithdraw()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">🏧 領出來(放口袋)</button>
                     <button onclick="quickSave()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">💰 存起來(預備金)</button>
                     <button onclick="quickInvest()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold">📉 放進去(交割戶)</button>
-                    <button onclick="quickToDream()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold border-rose-400 text-rose-500 dark:border-gold dark:text-gold">✨ 投夢想</button>
+                    <button onclick="quickToDream()" class="btn-action py-2.5 rounded-xl text-[10px] font-bold border-rose-400 text-rose-500 dark:border-gold dark:text-gold">✨ 投入夢想</button>
                 </div>
                 <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
                     <button onclick="setAcc('wallet')" id="btn-wallet" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition min-w-[60px]">生活</button>
@@ -277,7 +277,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3 pt-4 border-t">
                     <div class="col-span-2"><label class="text-[10px] font-bold">管家名稱</label><input type="text" id="setting-title" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm outline-none"></div>
-                    <div><label class="text-[10px] font-bold">夢想名稱</label><input type="text" id="setting-dream-name" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm outline-none"></div>
+                    <div><label class="text-[10px] font-bold">我有一個夢</label><input type="text" id="setting-dream-name" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm outline-none"></div>
                     <div><label class="text-[10px] font-bold">目標金額</label><input type="number" id="setting-dream-target" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm outline-none"></div>
                 </div>
                 <button onclick="updateDreamSettings(); updateSettings();" class="w-full py-3 bg-pink-500 dark:bg-gold text-white dark:text-slate-900 rounded-xl font-bold text-xs">儲存所有設定</button>
@@ -452,7 +452,7 @@
     // --- 執行修正內容的動作 ---
     function editTrans(index) {
         const target = storage.trans[index];
-        const newDesc = prompt("📝 修改項目內容 (加上圖示可修正收支統計)：", target.desc);
+        const newDesc = prompt("📝 修改 (加上🏧💰📉✨圖示可修正收支統計)：", target.desc);
         
         if (newDesc !== null && newDesc !== "") {
             saveState(); // 修正前先存檔，萬一改錯還能 ↩️ 復原
@@ -462,7 +462,7 @@
             if(!document.getElementById('tab-calendar').classList.contains('hidden')) {
                 renderCalendar();
             }
-            alert("內容已成功修正！✨");
+            alert("✅ 內容已成功修正！");
         }
     }
     function deleteTrans(index) {
@@ -581,7 +581,7 @@ function addTrans() {
             const decoded = JSON.parse(decodeURIComponent(atob(code)));
             storage = decoded.data || decoded;
             if (storage.dream === undefined) storage.dream = 0;
-            saveAndRender(); alert("✨ 還原成功！"); location.reload();
+            saveAndRender(); alert("✅ 還原成功！"); location.reload();
         } catch(e) { alert("❌ 代碼錯誤"); } 
     }
     function clearHistory() { 
