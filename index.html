@@ -229,6 +229,10 @@
                     <button onclick="setAcc('cash')" id="btn-cash" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition min-w-[60px]">現金</button>
                     <button onclick="setAcc('dream')" id="btn-dream" class="flex-1 py-2 rounded-lg text-[10px] font-bold transition min-w-[60px]">夢想</button>
                 </div>
+                <!-- 記帳輸入區 -->
+                <div class="grid grid-cols-1 gap-2">
+                <!-- 新增：日期選擇器，預設為今天 -->
+                    <input type="date" id="t-date" class="w-full bg-slate-50 dark:bg-slate-900 dark:text-white p-3 rounded-xl outline-none text-sm">
                 <div class="grid grid-cols-3 gap-2">
                     <input type="text" id="t-desc" placeholder="項目內容" class="col-span-2 bg-slate-50 dark:bg-slate-900 dark:text-white p-4 rounded-xl outline-none text-sm">
                     <input type="number" id="t-amount" placeholder="金額" class="col-span-1 bg-slate-50 dark:bg-slate-900 dark:text-white p-4 rounded-xl outline-none text-sm">
@@ -324,6 +328,12 @@
 
     let liveStocks = [], currentViewDate = new Date(), selectedDateStr = new Date().toLocaleDateString(), historyStack = [];
 
+    // 確保網頁一打開，日期選擇器就預設為今天
+    window.onload = function() {
+        const dateInput = document.getElementById('t-date');
+        if(dateInput) dateInput.valueAsDate = new Date();
+    };
+
     function saveState() { 
         if (historyStack.length > 20) historyStack.shift(); 
         historyStack.push(JSON.stringify(storage)); 
@@ -403,63 +413,160 @@
     function selectDate(dateStr) { selectedDateStr = dateStr; renderCalendar(); }
     function renderDayDetail(dateStr) {
         const list = document.getElementById('day-detail-list');
+        // 過濾出選取日期的帳目，並記下原始索引
         const dayTrans = storage.trans.map((t, idx) => ({...t, originalIndex: idx})).filter(t => t.date === dateStr);
-        list.innerHTML = dayTrans.length === 0 ? `<div class="glass-card p-10 text-center text-slate-400 text-xs font-bold">🍵 休息日</div>` : 
-            dayTrans.reverse().map(t => `<div class="glass-card p-4 flex justify-between items-center">
+        
+        list.innerHTML = dayTrans.length === 0 ? 
+            `<div class="glass-card p-10 text-center text-slate-400 text-xs font-bold">🍵 休息日</div>` : 
+            dayTrans.reverse().map(t => `
+            <div class="glass-card p-4 flex justify-between items-center transition active:bg-slate-50 dark:active:bg-slate-800">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-[9px] font-black text-slate-400 uppercase">${t.acc.substring(0,1)}</div>
-                    <div><p class="font-bold text-xs text-slate-600 dark:text-slate-100">${t.desc}</p><p class="text-[9px] text-slate-300 font-black uppercase">${t.acc}</p></div>
+                    <!-- 帳戶縮寫圓圈 -->
+                    <div class="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-[9px] font-black text-slate-400 uppercase">
+                        ${t.acc.substring(0,1)}
+                    </div>
+                    <div>
+                        <p class="font-bold text-xs text-slate-600 dark:text-slate-100">${t.desc}</p>
+                        <p class="text-[9px] text-slate-300 font-black uppercase">${t.acc}</p>
+                    </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span class="font-black text-sm amount-val ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">${t.amount > 0 ? '+' : ''}${t.amount.toLocaleString()}</span>
-                    <button onclick="deleteTrans(${t.originalIndex})" class="text-slate-200 dark:text-slate-500 p-2">🗑️</button>
+                <div class="flex items-center gap-2">
+                    <!-- 金額顯示 -->
+                    <span class="font-black text-sm amount-val mr-2 ${t.amount < 0 ? 'text-rose-400' : 'text-emerald-500'}">
+                        ${t.amount > 0 ? '+' : ''}${t.amount.toLocaleString()}
+                    </span>
+                    
+                    <!-- 📝 修正按鈕 -->
+                    <button onclick="editTrans(${t.originalIndex})" class="text-slate-400 dark:text-slate-500 p-2 hover:scale-110 active:scale-90 transition">
+                        📝
+                    </button>
+                    
+                    <!-- 🗑️ 刪除按鈕 -->
+                    <button onclick="deleteTrans(${t.originalIndex})" class="text-slate-200 dark:text-slate-600 p-2 hover:text-rose-400 transition">
+                        🗑️
+                    </button>
                 </div>
             </div>`).join('');
     }
 
+    // --- 執行修正內容的動作 ---
+    function editTrans(index) {
+        const target = storage.trans[index];
+        const newDesc = prompt("📝 修改項目內容 (加上圖示可修正收支統計)：", target.desc);
+        
+        if (newDesc !== null && newDesc !== "") {
+            saveState(); // 修正前先存檔，萬一改錯還能 ↩️ 復原
+            target.desc = newDesc;
+            saveAndRender();
+            // 如果在明細分頁，立即刷新畫面
+            if(!document.getElementById('tab-calendar').classList.contains('hidden')) {
+                renderCalendar();
+            }
+            alert("內容已成功修正！✨");
+        }
+    }
     function deleteTrans(index) {
         if(!confirm('要刪除嗎？')) return;
         saveState(); const target = storage.trans[index];
         storage[target.acc] -= target.amount; storage.trans.splice(index, 1);
         saveAndRender(); if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
-    function addTrans() {
-        const desc = document.getElementById('t-desc').value, amount = parseFloat(document.getElementById('t-amount').value);
-        if(!desc || isNaN(amount)) return;
-        saveState(); storage[storage.selectedAcc] += amount;
-        storage.trans.push({ acc: storage.selectedAcc, desc, amount, date: new Date().toLocaleDateString() });
-        saveAndRender(); document.getElementById('t-desc').value = ''; document.getElementById('t-amount').value = '';
-    }
+// --- 核心功能：記帳 (精準日期修正版) ---
+function addTrans() {
+    const desc = document.getElementById('t-desc').value;
+    const amount = parseFloat(document.getElementById('t-amount').value);
+    const dateInput = document.getElementById('t-date'); 
+    
+    if(!desc || isNaN(amount) || !dateInput.value) return alert("請輸入完整內容與日期！");
 
+    saveState();
+    
+    // 💡 關鍵修正：將選取的日期字串 (YYYY-MM-DD) 轉換為系統通用的本地格式
+    const selectedDate = new Date(dateInput.value);
+    const dateStr = selectedDate.toLocaleDateString();
+
+    storage[storage.selectedAcc] += amount;
+    storage.trans.push({ 
+        acc: storage.selectedAcc, 
+        desc: desc, 
+        amount: amount, 
+        date: dateStr // 儲存選取的日期，而不是今天
+    });
+
+    saveAndRender();
+    
+    // 成功後重設輸入框，日期跳回今天
+    document.getElementById('t-desc').value = '';
+    document.getElementById('t-amount').value = '';
+    dateInput.valueAsDate = new Date();
+    
+    // 如果你在明細分頁，自動跳轉到該日期查看
+    if(!document.getElementById('tab-calendar').classList.contains('hidden')) {
+        selectedDateStr = dateStr;
+        currentViewDate = new Date(selectedDate); // 月曆自動跳到該月份
+        renderCalendar();
+    }
+    
+    alert("紀錄成功！已歸檔至 " + dateStr);
+}
     function quickWithdraw() {
-        const amount = parseFloat(prompt("領多少出來？")); if (!amount || amount <= 0) return;
-        saveState(); const today = new Date().toLocaleDateString();
+        const amount = parseFloat(prompt("領多少出來？")); 
+        if (!amount || amount <= 0) return;
+        saveState(); 
+        
+        // 💡 取得畫面上選取的日期，若沒選則抓今天
+        const selectedDate = new Date(document.getElementById('t-date').value).toLocaleDateString();
+        
         storage.wallet -= amount; storage.cash += amount;
-        storage.trans.push({ acc: 'wallet', desc: `🏧 領出來`, amount: -amount, date: today }, { acc: 'cash', desc: `🏧 領錢放口袋`, amount, date: today });
+        storage.trans.push(
+            { acc: 'wallet', desc: `🏧 領出來`, amount: -amount, date: selectedDate }, 
+            { acc: 'cash', desc: `🏧 領錢放口袋`, amount, date: selectedDate }
+        );
         saveAndRender();
+        if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
     function quickSave() {
-        const amount = parseFloat(prompt("要存多少？")); if (!amount || amount <= 0) return;
-        saveState(); const today = new Date().toLocaleDateString();
+        const amount = parseFloat(prompt("要存多少？")); 
+        if (!amount || amount <= 0) return;
+        saveState(); 
+        const selectedDate = new Date(document.getElementById('t-date').value).toLocaleDateString();
+        
         storage.wallet -= amount; storage.savings += amount;
-        storage.trans.push({ acc: 'wallet', desc: `💰 存起來`, amount: -amount, date: today }, { acc: 'savings', desc: `💰 存預備金`, amount, date: today });
+        storage.trans.push(
+            { acc: 'wallet', desc: `💰 存起來`, amount: -amount, date: selectedDate }, 
+            { acc: 'savings', desc: `💰 存預備金`, amount, date: selectedDate }
+        );
         saveAndRender();
+        if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
     function quickInvest() {
-        const amount = parseFloat(prompt("要轉多少錢到交割戶？")); if (!amount || amount <= 0) return;
-        saveState(); const today = new Date().toLocaleDateString();
+        const amount = parseFloat(prompt("要轉多少錢到交割戶？")); 
+        if (!amount || amount <= 0) return;
+        saveState(); 
+        const selectedDate = new Date(document.getElementById('t-date').value).toLocaleDateString();
+        
         storage.wallet -= amount; storage.brokerage += amount;
-        storage.trans.push({ acc: 'wallet', desc: `📉 放進去`, amount: -amount, date: today }, { acc: 'brokerage', desc: `📉 進交割戶`, amount, date: today });
+        storage.trans.push(
+            { acc: 'wallet', desc: `📉 放進去`, amount: -amount, date: selectedDate }, 
+            { acc: 'brokerage', desc: `📉 進交割戶`, amount, date: selectedDate }
+        );
         saveAndRender();
+        if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
     function quickToDream() {
-        const amount = parseFloat(prompt("要投多少到夢想帳戶？")); if (!amount || amount <= 0) return;
-        saveState(); const today = new Date().toLocaleDateString();
+        const amount = parseFloat(prompt("要投多少到夢想帳戶？")); 
+        if (!amount || amount <= 0) return;
+        saveState(); 
+        const selectedDate = new Date(document.getElementById('t-date').value).toLocaleDateString();
+        
         storage.wallet -= amount; storage.dream += amount;
-        storage.trans.push({ acc: 'wallet', desc: `✨ 投夢想`, amount: -amount, date: today }, { acc: 'dream', desc: `✨ 存進夢想帳戶`, amount, date: today });
+        storage.trans.push(
+            { acc: 'wallet', desc: `✨ 投夢想`, amount: -amount, date: selectedDate }, 
+            { acc: 'dream', desc: `✨ 存進夢想帳戶`, amount, date: selectedDate }
+        );
         saveAndRender();
+        if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
-
     function exportData() {
         try {
             const encoded = btoa(encodeURIComponent(JSON.stringify({version:"V7.9", data:storage})));
