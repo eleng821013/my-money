@@ -570,24 +570,54 @@ function addTrans() {
         saveAndRender();
         if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     }
-    function exportData() {
-        try {
-            const encoded = btoa(encodeURIComponent(JSON.stringify({version:"V7.9", data:storage})));
-            const dummy = document.createElement("textarea"); document.body.appendChild(dummy);
-            dummy.value = encoded; dummy.select(); document.execCommand("copy");
-            document.body.removeChild(dummy); alert("✅ 備份代碼已複製到剪貼簿！");
-        } catch (e) { alert("❌ 備份失敗"); }
+function exportData() {
+    try {
+        // 建立包含版本資訊的資料物件
+        const dataStr = JSON.stringify({version: "V7.9", data: storage}, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        
+        // 產生自動下載連結
+        const exportFileDefaultName = `Paisu_Backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+        alert("✅ 備份檔案已下載！您可以將此檔案傳至 Line 儲存。");
+    } catch (e) { 
+        alert("❌ 備份失敗：" + e); 
     }
-    function importData() { 
-        const code = prompt("請貼上代碼："); if(!code) return;
-        try {
-            const decoded = JSON.parse(decodeURIComponent(atob(code)));
-            storage = decoded.data || decoded;
-            if (storage.dream === undefined) storage.dream = 0;
-            saveAndRender(); alert("✅ 還原成功！"); location.reload();
-        } catch(e) { alert("❌ 代碼錯誤"); } 
+}
+function importData() {
+    // 建立一個隱藏的檔案選擇器
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    
+    fileInput.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        
+        reader.onload = readerEvent => {
+            try {
+                const content = readerEvent.target.result;
+                const decoded = JSON.parse(content);
+                storage = decoded.data || decoded;
+                
+                // 補齊可能缺失的欄位
+                if (storage.dream === undefined) storage.dream = 0;
+                
+                saveAndRender();
+                alert("✅ 檔案還原成功！");
+                location.reload();
+            } catch (err) {
+                alert("❌ 檔案格式錯誤或損壞");
+            }
+        }
     }
-    function clearHistory() { 
+    fileInput.click();
+}    function clearHistory() { 
         if(confirm('🚨 確定要歸零清空嗎？')) {
             storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, dream: 0, trans: [], customTitle: '💎 額冷的paisu', selectedAcc: 'wallet', dreamName: '✈️ 飛向夢想', dreamTarget: 50000, darkMode: storage.darkMode, isPrivacy: storage.isPrivacy };
             saveAndRender(); location.reload();
