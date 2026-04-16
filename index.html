@@ -311,29 +311,30 @@
 </div>
 <script>
     const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbziOxOkH-JDDXJSQFSn0t4_9hVto_VhBl1SauC1AAbhaavX6HF0pg7bWi85Iv-PAPPW/exec';
-    // --- 🚚 舊資料自動搬家邏輯 ---
+    // --- 🚚 強制補齊欄位邏輯 (防止 NaN) ---
+    function validateStorage(data) {
+        const fields = ['wallet', 'savings', 'brokerage', 'cash', 'post', 'dream'];
+        fields.forEach(f => {
+            if (data[f] === undefined || isNaN(data[f])) data[f] = 0;
+        });
+        if (!data.trans) data.trans = [];
+        return data;
+    }
+
     let storage = JSON.parse(localStorage.getItem('perfectMaster_V7_9'));
     let oldV5Data = JSON.parse(localStorage.getItem('perfectMaster_V5'));
 
-    // 如果新系統沒資料，但發現有舊版 V5 資料，就自動搬過來
     if (!storage && oldV5Data) {
-        storage = { 
-            ...oldV5Data,
-            dream: 0, // 幫你補上新的夢想格子
-            version: "V7.9-Migrated"
-        };
-        localStorage.setItem('perfectMaster_V7_9', JSON.stringify(storage));
-    } 
-
-    // 如果兩邊都沒有資料，才用全新的帳本
-    if (!storage) {
+        storage = validateStorage({ ...oldV5Data, version: "V7.9-Migrated" });
+    } else if (!storage) {
         storage = { 
             wallet: 0, savings: 0, brokerage: 0, cash: 0, post: 0, dream: 0, trans: [], 
             customTitle: '💎 額冷的paisu', selectedAcc: 'wallet',
             dreamName: '✈️ 飛向夢想', dreamTarget: 50000, darkMode: false, isPrivacy: false
         };
     }
-    // --- 搬家結束 ---
+    storage = validateStorage(storage); // 再次確保現有資料欄位完整
+    localStorage.setItem('perfectMaster_V7_9', JSON.stringify(storage));
 
     let liveStocks = [], currentViewDate = new Date(), selectedDateStr = new Date().toLocaleDateString(), historyStack = [];
 
@@ -350,12 +351,12 @@
     
     function undoLastAction() {
         if (historyStack.length === 0) return alert("沒有紀錄可以復原囉！");
+        if (!confirm("確定要復原上一步操作嗎？↩️")) return;
         storage = JSON.parse(historyStack.pop()); 
         saveAndRender();
-        if(!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
-        alert("已成功撤回上一步操作！↩️");
+        renderCalendar(); // 強制刷新月曆
+        alert("已成功撤回！");
     }
-
     if (storage.darkMode) document.documentElement.classList.add('dark');
     function applyPrivacy() {
         document.body.classList.toggle('privacy-active', storage.isPrivacy);
@@ -641,7 +642,7 @@ function importData() {
     fileInput.click();
 }    function clearHistory() { 
         if(confirm('🚨 確定要歸零清空嗎？')) {
-            storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, post: 0, dream: 0, trans: [], customTitle: '💎 額冷的paisu', selectedAcc: 'wallet', dreamName: '✈️ 飛向夢想', dreamTarget: 50000, darkMode: storage.darkMode, isPrivacy: storage.isPrivacy };
+            storage = { wallet: 0, savings: 0, brokerage: 0, cash: 0, dream: 0, trans: [], customTitle: '💎 額冷的paisu', selectedAcc: 'wallet', dreamName: '✈️ 飛向夢想', dreamTarget: 50000, darkMode: storage.darkMode, isPrivacy: storage.isPrivacy };
             saveAndRender(); location.reload();
         } 
     }
@@ -650,27 +651,38 @@ function importData() {
     function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
 
     function renderOverview() {
-        document.getElementById('main-title').innerText = storage.customTitle;
-        ['wallet', 'savings', 'brokerage', 'cash', 'post'].forEach(a => {
-            document.getElementById(`${a}-val`).innerText = `$ ${storage[a].toLocaleString()}`;
+        document.getElementById('main-title').innerText = storage.customTitle || '💎 額冷的paisu';
+        const accounts = ['wallet', 'savings', 'brokerage', 'cash', 'post'];
+        accounts.forEach(a => {
+            const el = document.getElementById(`${a}-val`);
+            if(el) el.innerText = `$ ${(storage[a] || 0).toLocaleString()}`;
         });
-        document.getElementById('dream-acc-val').innerText = `$ ${storage.dream.toLocaleString()}`;
-        
-        const sList = document.getElementById('stock-list'); sList.innerHTML = ''; let stockTotal = 0;
-        liveStocks.forEach(s => {
-            const qty = s.qty || 0; const val = s.price * qty; stockTotal += val;
-            sList.innerHTML += `<tr class="border-b border-pink-50 dark:border-slate-700"><td class="py-3 font-bold">${s.name}</td><td class="text-center font-bold text-slate-500 dark:text-slate-400">${qty.toLocaleString()}</td><td class="text-right text-pink-500 dark:text-gold font-black">$${s.price.toFixed(2)}</td><td class="text-right font-black amount-val">$${Math.round(val).toLocaleString()}</td></tr>`;
-        });
-
+        const sList = document.getElementById('stock-list'); 
+        sList.innerHTML = ''; 
+        let stockTotal = 0;
+        if (liveStocks && liveStocks.length > 0) {
+            liveStocks.forEach(s => {
+                const qty = s.qty || 0; const val = (s.price || 0) * qty; stockTotal += val;
+                sList.innerHTML += `<tr class="border-b border-pink-50 dark:border-slate-700"><td class="py-3 font-bold">${s.name}</td><td class="text-center font-bold text-slate-500 dark:text-slate-400">${qty.toLocaleString()}</td><td class="text-right text-pink-500 dark:text-gold font-black">$${(s.price || 0).toFixed(2)}</td><td class="text-right font-black amount-val">$${Math.round(val).toLocaleString()}</td></tr>`;
+            });
+        } else {
+            sList.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400 text-[10px]">載入行情中...</td></tr>`;
+        }
         const dreamVal = storage.dream || 0;
         const target = storage.dreamTarget || 1;
         const percent = Math.min(100, Math.round((dreamVal / target) * 100));
-        document.getElementById('dream-name-display').innerText = storage.dreamName;
+        document.getElementById('dream-acc-val').innerText = `$ ${dreamVal.toLocaleString()}`;
+        document.getElementById('dream-name-display').innerText = storage.dreamName || '我的夢想';
         document.getElementById('dream-val').innerText = `$ ${dreamVal.toLocaleString()}`;
         document.getElementById('dream-percent').innerText = `${percent}%達成`;
         document.getElementById('dream-bar').style.width = `${percent}%`;
         document.getElementById('dream-remain').innerText = `$ ${Math.max(0, target - dreamVal).toLocaleString()}`;
-        document.getElementById('total-net-worth').innerText = `$ ${Math.round(storage.wallet + storage.savings + storage.brokerage + storage.cash + storage.dream + storage.post + stockTotal).toLocaleString()}`;
+        
+        // 總資產計算 (加入所有安全防護)
+        const netWorth = (storage.wallet || 0) + (storage.savings || 0) + (storage.brokerage || 0) + 
+                         (storage.cash || 0) + (storage.dream || 0) + (storage.post || 0) + stockTotal;
+        document.getElementById('total-net-worth').innerText = `$ ${Math.round(netWorth).toLocaleString()}`;
+        
         applyPrivacy();
     }
 
